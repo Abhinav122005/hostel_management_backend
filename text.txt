@@ -1,0 +1,77 @@
+Register a user 
+{
+  "name": "abhi",
+  "email": "@example.com",
+  "mobile": "6281786206",
+  "password": "123456"
+}
+
+login user
+{
+  "email": "@example.com",
+  "password": "123456"
+}
+
+add owner
+{
+  "name": "Hostel Owner",
+  "email": "owner@example.com",
+  "mobile": "",
+  "password": "123456",
+  "payuKey": "test_key",
+  "payuSalt": "test_salt"
+}
+
+login owner
+{
+  "email": "owner@example.com",
+  "password": "123456"
+}
+
+add Hostel
+{
+  "name": "Sri Boys Hostel",
+  "area": "Ameerpet",
+  "address": "Near Ameerpet Metro Station",
+  "description": "Clean rooms, WiFi, food and 24/7 water available.",
+  "ownerId": 1,
+  "type": "boys",
+  "roomSharing": {
+    "2": 6500,
+    "3": 5500,
+    "4": 4500
+  },
+  "vacancy": {
+    "2": 5,
+    "3": 8,
+    "4": 10
+  },
+  "location": {
+    "type": "Point",
+    "coordinates": [78.4483, 17.4375]
+  }
+}
+
+http://127.0.0.1:8000/api/owner/forgot-password/
+{
+  "email": "@example.com"
+}
+response:
+{
+  "message": "Password reset OTP sent successfully",
+  "userId": 1,
+  "email": "@example.com",
+  "otp": "123456"
+}
+POST http://127.0.0.1:8000/api/owner/reset-password/
+{
+  "email": "@example.com",
+  "otp": "123456",
+  "new_password": "newpass123"
+}
+after:
+{
+  "message": "Password reset successfully",
+  "userId": 1,
+  "email": "@example.com"
+}

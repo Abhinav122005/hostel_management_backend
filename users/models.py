@@ -18,6 +18,8 @@ class User(models.Model):
         null=True,
     )
     joined_date = models.DateTimeField(blank=True, null=True)
+    otp = models.CharField(max_length=6, blank=True, null=True)
+    otp_created_at = models.DateTimeField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -49,3 +51,4 @@ class User(models.Model):
         }
 
 # Create your models here.
+

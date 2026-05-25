@@ -4,11 +4,23 @@ from rest_framework.response import Response
 
 from .models import Owner
 from .serializers import (
+    OwnerForgotPasswordSerializer,
     OwnerLoginSerializer,
     OwnerRegisterSerializer,
+    OwnerResetPasswordSerializer,
+    OwnerSendOTPSerializer,
     OwnerSerializer,
+    OwnerVerifyOTPSerializer,
     generate_owner_token,
 )
+
+
+def _otp_error_response(serializer):
+    errors = serializer.errors.get("non_field_errors")
+    message = errors[0] if errors else serializer.errors
+    if message == "Owner not found":
+        return Response({"message": message}, status=status.HTTP_404_NOT_FOUND)
+    return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
@@ -43,12 +55,83 @@ def login_owner(request):
     owner = serializer.validated_data["owner"]
     return Response(
         {
-            "message": "Login successful",
+            "message": "Login successful. OTP sent successfully",
             "token": generate_owner_token(owner.id),
+            "otp": serializer.validated_data["otp"],
             "owner": OwnerSerializer(owner).data,
         },
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["POST"])
+def send_owner_otp(request):
+    serializer = OwnerSendOTPSerializer(data=request.data)
+    if serializer.is_valid():
+        owner, otp = serializer.save()
+        return Response(
+            {
+                "message": "OTP sent successfully",
+                "ownerId": owner.id,
+                "email": owner.email,
+                "otp": otp,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
+
+
+@api_view(["POST"])
+def verify_owner_otp(request):
+    serializer = OwnerVerifyOTPSerializer(data=request.data)
+    if serializer.is_valid():
+        owner = serializer.save()
+        return Response(
+            {
+                "message": "OTP verified successfully",
+                "ownerId": owner.id,
+                "email": owner.email,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
+
+
+@api_view(["POST"])
+def forgot_owner_password(request):
+    serializer = OwnerForgotPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        owner, otp = serializer.save()
+        return Response(
+            {
+                "message": "Password reset OTP sent successfully",
+                "ownerId": owner.id,
+                "email": owner.email,
+                "otp": otp,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
+
+
+@api_view(["POST"])
+def reset_owner_password(request):
+    serializer = OwnerResetPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        owner = serializer.save()
+        return Response(
+            {
+                "message": "Password reset successfully",
+                "ownerId": owner.id,
+                "email": owner.email,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
 
 
 @api_view(["GET"])

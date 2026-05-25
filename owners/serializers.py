@@ -1,11 +1,15 @@
 import os
+import random
 from datetime import datetime, timedelta, timezone
 
 import jwt
 from django.contrib.auth.hashers import check_password, make_password
+from django.utils import timezone as django_timezone
 from rest_framework import serializers
 
 from .models import Owner
+
+OTP_EXPIRY_MINUTES = 5
 
 
 def generate_owner_token(owner_id):
@@ -15,6 +19,27 @@ def generate_owner_token(owner_id):
         "exp": datetime.now(timezone.utc) + timedelta(days=1),
     }
     return jwt.encode(payload, os.environ.get("JWT_SECRET", "secret123"), algorithm="HS256")
+
+
+def generate_and_save_owner_otp(owner):
+    otp = f"{random.randint(100000, 999999)}"
+    owner.otp = otp
+    owner.otp_created_at = django_timezone.now()
+    owner.save(update_fields=["otp", "otp_created_at"])
+    return otp
+
+
+def owner_otp_is_expired(owner):
+    if not owner.otp_created_at:
+        return True
+    return django_timezone.now() > owner.otp_created_at + timedelta(minutes=OTP_EXPIRY_MINUTES)
+
+
+def find_owner_by_email_or_mobile(email=None, mobile=None):
+    owner = Owner.objects.filter(email=email).first() if email else None
+    if not owner and mobile:
+        owner = Owner.objects.filter(mobile=mobile).first()
+    return owner
 
 
 def default_payu_key():
@@ -72,4 +97,102 @@ class OwnerLoginSerializer(serializers.Serializer):
         if not check_password(attrs["password"], owner.password):
             raise serializers.ValidationError({"message": "Invalid credentials"})
         attrs["owner"] = owner
+        attrs["otp"] = generate_and_save_owner_otp(owner)
         return attrs
+
+
+class OwnerSendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=False)
+    mobile = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        mobile = attrs.get("mobile")
+        if not email and not mobile:
+            raise serializers.ValidationError("email or mobile is required")
+
+        owner = find_owner_by_email_or_mobile(email=email, mobile=mobile)
+        if not owner:
+            raise serializers.ValidationError("Owner not found")
+
+        attrs["owner"] = owner
+        return attrs
+
+    def save(self):
+        owner = self.validated_data["owner"]
+        otp = generate_and_save_owner_otp(owner)
+        return owner, otp
+
+
+class OwnerVerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=False)
+    mobile = serializers.CharField(required=False)
+    otp = serializers.CharField(max_length=6)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        mobile = attrs.get("mobile")
+        otp = attrs.get("otp")
+
+        if not email and not mobile:
+            raise serializers.ValidationError("email or mobile is required")
+
+        owner = find_owner_by_email_or_mobile(email=email, mobile=mobile)
+        if not owner:
+            raise serializers.ValidationError("Owner not found")
+        if not owner.otp:
+            raise serializers.ValidationError("OTP not requested")
+        if owner_otp_is_expired(owner):
+            raise serializers.ValidationError("OTP expired")
+        if owner.otp != otp:
+            raise serializers.ValidationError("Invalid OTP")
+
+        attrs["owner"] = owner
+        return attrs
+
+    def save(self):
+        owner = self.validated_data["owner"]
+        owner.otp = None
+        owner.otp_created_at = None
+        owner.save(update_fields=["otp", "otp_created_at"])
+        return owner
+
+
+class OwnerForgotPasswordSerializer(OwnerSendOTPSerializer):
+    pass
+
+
+class OwnerResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=False)
+    mobile = serializers.CharField(required=False)
+    otp = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=6)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        mobile = attrs.get("mobile")
+        otp = attrs.get("otp")
+
+        if not email and not mobile:
+            raise serializers.ValidationError("email or mobile is required")
+
+        owner = find_owner_by_email_or_mobile(email=email, mobile=mobile)
+        if not owner:
+            raise serializers.ValidationError("Owner not found")
+        if not owner.otp:
+            raise serializers.ValidationError("OTP not requested")
+        if owner_otp_is_expired(owner):
+            raise serializers.ValidationError("OTP expired")
+        if owner.otp != otp:
+            raise serializers.ValidationError("Invalid OTP")
+
+        attrs["owner"] = owner
+        return attrs
+
+    def save(self):
+        owner = self.validated_data["owner"]
+        owner.password = make_password(self.validated_data["new_password"])
+        owner.otp = None
+        owner.otp_created_at = None
+        owner.save(update_fields=["password", "otp", "otp_created_at"])
+        return owner

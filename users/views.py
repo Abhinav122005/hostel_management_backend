@@ -3,7 +3,23 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .models import User
-from .serializers import UserLoginSerializer, UserRegisterSerializer, UserSerializer
+from .serializers import (
+    UserForgotPasswordSerializer,
+    UserLoginSerializer,
+    UserRegisterSerializer,
+    UserResetPasswordSerializer,
+    UserSendOTPSerializer,
+    UserSerializer,
+    UserVerifyOTPSerializer,
+)
+
+
+def _otp_error_response(serializer):
+    errors = serializer.errors.get("non_field_errors")
+    message = errors[0] if errors else serializer.errors
+    if message == "User not found":
+        return Response({"message": message}, status=status.HTTP_404_NOT_FOUND)
+    return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
@@ -24,6 +40,76 @@ def login_user(request):
     if serializer.is_valid():
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+def send_user_otp(request):
+    serializer = UserSendOTPSerializer(data=request.data)
+    if serializer.is_valid():
+        user, otp = serializer.save()
+        return Response(
+            {
+                "message": "OTP sent successfully",
+                "userId": user.id,
+                "email": user.email,
+                "otp": otp,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
+
+
+@api_view(["POST"])
+def verify_user_otp(request):
+    serializer = UserVerifyOTPSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response(
+            {
+                "message": "OTP verified successfully",
+                "userId": user.id,
+                "email": user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
+
+
+@api_view(["POST"])
+def forgot_user_password(request):
+    serializer = UserForgotPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        user, otp = serializer.save()
+        return Response(
+            {
+                "message": "Password reset OTP sent successfully",
+                "userId": user.id,
+                "email": user.email,
+                "otp": otp,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
+
+
+@api_view(["POST"])
+def reset_user_password(request):
+    serializer = UserResetPasswordSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response(
+            {
+                "message": "Password reset successfully",
+                "userId": user.id,
+                "email": user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    return _otp_error_response(serializer)
 
 
 @api_view(["GET"])
