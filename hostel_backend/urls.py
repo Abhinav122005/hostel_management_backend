@@ -25,5 +25,9 @@ urlpatterns = [
     path('api/owner/', include('owners.urls')),
     path('api/hostels/', include('hostels_app.urls')),
     path('api/bookings/', include('bookings_app.urls')),
+    path('api/requests/', include('requests_app.urls')),
+    path('api/reviews/', include('reviews_app.urls')),
+    path('api/transactions/', include('transactions_app.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 

@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'owners',
     'hostels_app',
     'bookings_app',
+    'requests_app',
+    'reviews_app',
+    'transactions_app',
 ]
 
 MIDDLEWARE = [
@@ -123,4 +126,5 @@ STATIC_URL = 'static/'
 
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = BASE_DIR / 'uploads'
+
 

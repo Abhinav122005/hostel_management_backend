@@ -75,3 +75,16 @@ after:
   "userId": 1,
   "email": "@example.com"
 }
+
+booking room :
+http://127.0.0.1:8000/api/bookings/add/
+{
+  "userId": 1,
+  "hostelId": 1,
+  "sharingType": "2-sharing",
+  "message": "Need room"
+}
+
+
+searchusers
+http://127.0.0.1:8000/api/requests/searchusers/?query=gmail
