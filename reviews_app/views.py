@@ -5,8 +5,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from hostels_app.models import Hostel
-from .models import Review
-from .serializers import ReviewCreateSerializer, ReviewSerializer
+from .models import Review, UserReview
+from .serializers import ReviewCreateSerializer, ReviewSerializer, UserReviewCreateSerializer, UserReviewSerializer
 
 def _update_hostel_rating(hostel_id):
     avg_rating = Review.objects.filter(hostel_id=hostel_id).aggregate(Avg("rating"))["rating__avg"]
@@ -50,3 +50,33 @@ def delete_review(request, review_id):
         return Response({"message": "Review deleted successfully"}, status=status.HTTP_200_OK)
     except Review.DoesNotExist:
         return Response({"message": "Review not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(["POST"])
+def add_user_review(request):
+    serializer = UserReviewCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        review = serializer.save()
+        return Response(
+            {
+                "message": "User review added successfully",
+                "review": UserReviewSerializer(review).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    return Response({"message": "Invalid data", "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET"])
+def get_user_reviews(request, user_id):
+    reviews = UserReview.objects.filter(user_id=user_id).select_related("owner")
+    serializer = UserReviewSerializer(reviews, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["DELETE"])
+def delete_user_review(request, review_id):
+    try:
+        review = UserReview.objects.get(id=review_id)
+        review.delete()
+        return Response({"message": "User review deleted successfully"}, status=status.HTTP_200_OK)
+    except UserReview.DoesNotExist:
+        return Response({"message": "User review not found"}, status=status.HTTP_404_NOT_FOUND)
