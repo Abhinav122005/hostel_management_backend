@@ -15,6 +15,16 @@ def initiate_transaction(request):
     """
     Creates a pending transaction and generates the hash required for the frontend
     to send to PayU.
+    
+    Expected JSON Payload:
+    {
+      "userId": 1,
+      "ownerId": 2,
+      "hostelId": 1,
+      "amount": 5000,
+      "paymentType": "Booking",
+      "description": "Payment for booking"
+    }
     """
     serializer = TransactionCreateSerializer(data=request.data)
     if not serializer.is_valid():
@@ -81,6 +91,18 @@ def verify_payu_payment(request):
     """
     Webhook/Callback endpoint for PayU to send success/failure status.
     It securely verifies the hash sent by PayU.
+    
+    Expected JSON Payload:
+    {
+      "txnid": "TXN_12345",
+      "hash": "abcdef...",
+      "status": "success",
+      "key": "...",
+      "amount": 5000,
+      "productinfo": "Hostel Payment...",
+      "firstname": "John",
+      "email": "john@example.com"
+    }
     """
     data = request.data
     txnid = data.get("txnid")

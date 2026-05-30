@@ -29,6 +29,16 @@ SHARING_TO_VACANCY_KEY = {
 }
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "userId": 1,
+#   "hostelId": 1,
+#   "sharingType": "2-sharing",
+#   "price": 5000,
+#   "bookingDate": "2024-01-01"
+# }
+# """
 @api_view(["POST"])
 def create_booking(request):
     serializer = BookingCreateSerializer(data=request.data)
@@ -140,6 +150,12 @@ def _set_booking_status(booking_id, status_value):
     )
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "status": "approved"
+# }
+# """
 @api_view(["PATCH", "POST"])
 def update_booking_status(request, booking_id):
     return _set_booking_status(booking_id, request.data.get("status"))

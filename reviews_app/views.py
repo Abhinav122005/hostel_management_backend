@@ -15,6 +15,15 @@ def _update_hostel_rating(hostel_id):
     else:
         Hostel.objects.filter(id=hostel_id).update(rating=0)
 
+# """
+# Expected JSON Payload:
+# {
+#   "userId": 1,
+#   "hostelId": 1,
+#   "rating": 4.5,
+#   "comment": "Great place!"
+# }
+# """
 @api_view(["POST"])
 def add_review(request):
     serializer = ReviewCreateSerializer(data=request.data)
@@ -51,6 +60,15 @@ def delete_review(request, review_id):
     except Review.DoesNotExist:
         return Response({"message": "Review not found"}, status=status.HTTP_404_NOT_FOUND)
 
+# """
+# Expected JSON Payload:
+# {
+#   "ownerId": 1,
+#   "userId": 1,
+#   "rating": 5.0,
+#   "comment": "Good tenant!"
+# }
+# """
 @api_view(["POST"])
 def add_user_review(request):
     serializer = UserReviewCreateSerializer(data=request.data)

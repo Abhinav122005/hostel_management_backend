@@ -22,6 +22,15 @@ def _otp_error_response(serializer):
     return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "name": "John Doe",
+#   "email": "john@example.com",
+#   "mobile": "1234567890",
+#   "password": "secretpassword"
+# }
+# """
 @api_view(["POST"])
 def register_user(request):
     serializer = UserRegisterSerializer(data=request.data)
@@ -34,6 +43,13 @@ def register_user(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "john@example.com",
+#   "password": "secretpassword"
+# }
+# """
 @api_view(["POST"])
 def login_user(request):
     serializer = UserLoginSerializer(data=request.data)
@@ -42,6 +58,12 @@ def login_user(request):
     return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "john@example.com"
+# }
+# """
 @api_view(["POST"])
 def send_user_otp(request):
     serializer = UserSendOTPSerializer(data=request.data)
@@ -60,6 +82,13 @@ def send_user_otp(request):
     return _otp_error_response(serializer)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "john@example.com",
+#   "otp": "123456"
+# }
+# """
 @api_view(["POST"])
 def verify_user_otp(request):
     serializer = UserVerifyOTPSerializer(data=request.data)
@@ -77,6 +106,12 @@ def verify_user_otp(request):
     return _otp_error_response(serializer)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "john@example.com"
+# }
+# """
 @api_view(["POST"])
 def forgot_user_password(request):
     serializer = UserForgotPasswordSerializer(data=request.data)
@@ -95,6 +130,14 @@ def forgot_user_password(request):
     return _otp_error_response(serializer)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "john@example.com",
+#   "otp": "123456",
+#   "password": "newpassword"
+# }
+# """
 @api_view(["POST"])
 def reset_user_password(request):
     serializer = UserResetPasswordSerializer(data=request.data)

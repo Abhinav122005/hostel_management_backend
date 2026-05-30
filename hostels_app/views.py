@@ -112,6 +112,12 @@ def get_single_hostel(request, hostel_id):
     return Response({"data": HostelWithUsersSerializer(hostel).data}, status=status.HTTP_200_OK)
 
 
+# """
+# Expected JSON Payload (or Form-Data with "hostel" key):
+# {
+#   "hostel": "{\"name\": \"Sunny Hostel\", \"ownerId\": 1, \"area\": \"Downtown\"}"
+# }
+# """
 @api_view(["POST"])
 def add_hostel(request):
     payload = _add_uploaded_media(request, _hostel_payload(request))
@@ -179,6 +185,12 @@ def get_nearby_hostels(request):
     return Response({"data": serializer.data}, status=status.HTTP_200_OK)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "sharingKey": "2-sharing"
+# }
+# """
 @api_view(["POST"])
 def decrement_vacancy(request, hostel_id):
     serializer = VacancySerializer(data=request.data)

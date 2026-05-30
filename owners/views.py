@@ -23,6 +23,15 @@ def _otp_error_response(serializer):
     return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "name": "Jane Owner",
+#   "email": "jane@example.com",
+#   "mobile": "0987654321",
+#   "password": "ownerpassword"
+# }
+# """
 @api_view(["POST"])
 def register_owner(request):
     serializer = OwnerRegisterSerializer(data=request.data)
@@ -41,6 +50,13 @@ def register_owner(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "jane@example.com",
+#   "password": "ownerpassword"
+# }
+# """
 @api_view(["POST"])
 def login_owner(request):
     serializer = OwnerLoginSerializer(data=request.data)
@@ -64,6 +80,12 @@ def login_owner(request):
     )
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "jane@example.com"
+# }
+# """
 @api_view(["POST"])
 def send_owner_otp(request):
     serializer = OwnerSendOTPSerializer(data=request.data)
@@ -82,6 +104,13 @@ def send_owner_otp(request):
     return _otp_error_response(serializer)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "jane@example.com",
+#   "otp": "123456"
+# }
+# """
 @api_view(["POST"])
 def verify_owner_otp(request):
     serializer = OwnerVerifyOTPSerializer(data=request.data)
@@ -99,6 +128,12 @@ def verify_owner_otp(request):
     return _otp_error_response(serializer)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "jane@example.com"
+# }
+# """
 @api_view(["POST"])
 def forgot_owner_password(request):
     serializer = OwnerForgotPasswordSerializer(data=request.data)
@@ -117,6 +152,14 @@ def forgot_owner_password(request):
     return _otp_error_response(serializer)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "email": "jane@example.com",
+#   "otp": "123456",
+#   "password": "newpassword"
+# }
+# """
 @api_view(["POST"])
 def reset_owner_password(request):
     serializer = OwnerResetPasswordSerializer(data=request.data)

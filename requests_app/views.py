@@ -28,6 +28,17 @@ def search_users(request):
     return Response({"count": users.count(), "data": serializer.data}, status=status.HTTP_200_OK)
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "userId": 1,
+#   "hostelId": 1,
+#   "ownerId": 1,
+#   "senderType": "user",
+#   "sharingType": "2-sharing",
+#   "sharingPrice": 2500
+# }
+# """
 @api_view(["POST"])
 def send_request(request):
     serializer = HostelRequestCreateSerializer(data=request.data)
@@ -136,6 +147,12 @@ def _clear_user_joined_hostel(hostel_request):
     )
 
 
+# """
+# Expected JSON Payload:
+# {
+#   "status": "accepted"
+# }
+# """
 @api_view(["PUT", "PATCH", "POST"])
 def update_request_status(request, request_id):
     serializer = RequestStatusSerializer(data=request.data)
