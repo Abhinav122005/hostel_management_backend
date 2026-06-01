@@ -41,4 +41,6 @@ urlpatterns = [
     path('api/chat/', include('chat_app.urls')),
     # Notifications app endpoints
     path('api/notifications/', include('notifications_app.urls')),
+    # Calls app endpoints
+    path('api/calls/', include('calls_app.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -78,6 +78,7 @@ after:
 
 booking room :
 http://127.0.0.1:8000/api/bookings/add/
+
 {
   "userId": 1,
   "hostelId": 1,
@@ -88,3 +89,77 @@ http://127.0.0.1:8000/api/bookings/add/
 
 searchusers
 http://127.0.0.1:8000/api/requests/searchusers/?query=gmail
+
+send 
+http://127.0.0.1:8000/api/requests/send/
+{
+    "userId": 1,
+    "hostelId": 2,
+    "senderType": "user",
+    "sharingType": "double"
+}
+
+reviews_app:---
+
+http://127.0.0.1:8000/api/reviews/add/
+{
+    "userId": 1,
+    "hostelId": 1,
+    "rating": 4.5,
+    "comment": "Great hostel with excellent facilities!"
+}
+
+transactions_app:--
+http://127.0.0.1:8000/api/transactions_app/initiate/
+{
+    "userId": 1,
+    "ownerId": 1,
+    "hostelId": 1,
+    "amount": 5000.00,
+    "paymentType": "rent",
+    "description": "October rent"
+}
+response:-
+{
+    "message": "Transaction initiated",
+    "transaction": {
+        "_id": 1,
+        "userId": 1,
+        "ownerId": 1,
+        "hostelId": 1,
+        "amount": "5000.00",
+        "transactionId": "TXN_869C170D53",
+        "paymentType": "rent",
+        "status": "pending",
+        "description": "October rent",
+        "createdAt": "2026-05-27T15:19:51.873202Z",
+        "updatedAt": "2026-05-27T15:19:51.877967Z",
+        "user_info": {
+            "name": "Abhinav",
+            "email": "abhinav@gmail.com"
+        },
+        "hostel_info": {
+            "name": "Sri Boys Hostel"
+        }
+    },
+    "payuParams": {
+        "key": "optional_key",
+        "txnid": "TXN_869C170D53",
+        "amount": "5000.00",
+        "productinfo": "Hostel Payment - 1",
+        "firstname": "Abhinav",
+        "email": "abhinav@gmail.com",
+        "hash": "fb0a398b1ae6089650152b0e92fea72e64c7f1415e9592f6d6f100f9189eb2d0295c29756179ff5fa29766ad89738eea484769272a87a7acb5b8b3a211283fa5"
+    }
+}
+http://127.0.0.1:8000/api/transactions/verify/
+{
+    "txnid": "TXN_869C170D53",
+    "status": "success",
+    "hash": "7168b3083208ec94dc7e08114da4a165984cf4d22f5a9274b9a28aec02a809ac6504f4ce47fb087dbf5c4aa155c06dc5f91879c98dc8083b5ff53d0f7b3f0bd9",
+    "key": "optional_key",
+    "amount": "5000.00",
+    "productinfo": "Hostel Payment - 1",
+    "firstname": "Abhinav",
+    "email": "abhinav@example.com"
+}
