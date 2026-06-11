@@ -6,6 +6,7 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone as django_timezone
+from django.core.mail import send_mail
 from rest_framework import serializers
 
 from .models import User
@@ -26,6 +27,22 @@ def generate_and_save_user_otp(user):
     user.otp = otp
     user.otp_created_at = django_timezone.now()
     user.save(update_fields=["otp", "otp_created_at", "updated_at"])
+    
+    # Send Email
+    subject = "Your Verification Code"
+    message = f"Your verification OTP code is: {otp}\nThis code will expire in {OTP_EXPIRY_MINUTES} minutes."
+    
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+    except Exception as e:
+        print(f"Failed to send email to {user.email}: {e}")
+        
     return otp
 
 
