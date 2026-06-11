@@ -18,4 +18,6 @@ urlpatterns = [
     path("reset-password/", views.reset_user_password, name="reset_user_password"),
     # Get user details by ID
     path("<int:user_id>/", views.get_user_by_id, name="get_user_by_id"),
+    # Update user profile
+    path("update/<int:user_id>/", views.update_user_profile, name="update_user_profile"),
 ]

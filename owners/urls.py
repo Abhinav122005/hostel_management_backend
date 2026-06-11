@@ -18,4 +18,6 @@ urlpatterns = [
     path("reset-password/", views.reset_owner_password, name="reset_owner_password"),
     # Verify PayU credentials for an owner
     path("verify/<int:owner_id>/", views.verify_payu, name="verify_payu"),
+    # Update owner profile
+    path("update/<int:owner_id>/", views.update_owner_profile, name="update_owner_profile"),
 ]

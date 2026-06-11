@@ -10,6 +10,7 @@ from .serializers import (
     OwnerResetPasswordSerializer,
     OwnerSendOTPSerializer,
     OwnerSerializer,
+    OwnerUpdateSerializer,
     OwnerVerifyOTPSerializer,
     generate_owner_token,
 )
@@ -78,6 +79,35 @@ def login_owner(request):
         },
         status=status.HTTP_200_OK,
     )
+
+
+# """
+# Expected JSON Payload:
+# {
+#   "name": "Updated Owner Name",
+#   "email": "updated@example.com",
+#   "mobile": "8888888888",
+#   "payuKey": "new_payu_key",
+#   "payuSalt": "new_payu_salt"
+# }
+# """
+@api_view(["PUT"])
+def update_owner_profile(request, owner_id):
+    owner = Owner.objects.filter(id=owner_id).first()
+    if not owner:
+        return Response({"message": "Owner not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = OwnerUpdateSerializer(owner, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {
+                "message": "Profile updated successfully",
+                "owner": OwnerSerializer(owner).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # """

@@ -10,6 +10,7 @@ from .serializers import (
     UserResetPasswordSerializer,
     UserSendOTPSerializer,
     UserSerializer,
+    UserUpdateSerializer,
     UserVerifyOTPSerializer,
 )
 
@@ -170,3 +171,30 @@ def get_user_by_id(request, user_id):
         },
         status=status.HTTP_200_OK,
     )
+
+
+# """
+# Expected JSON Payload:
+# {
+#   "name": "Updated Name",
+#   "email": "updated@example.com",
+#   "mobile": "9876543210"
+# }
+# """
+@api_view(["PUT"])
+def update_user_profile(request, user_id):
+    user = User.objects.filter(id=user_id).first()
+    if not user:
+        return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {
+                "message": "Profile updated successfully",
+                "user": UserSerializer(user).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

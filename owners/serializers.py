@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone as django_timezone
 from django.core.mail import send_mail
+from twilio.rest import Client
 from rest_framework import serializers
 
 from .models import Owner
@@ -43,6 +44,18 @@ def generate_and_save_owner_otp(owner):
         )
     except Exception as e:
         print(f"Failed to send email to {owner.email}: {e}")
+
+    # Send SMS via Twilio
+    if owner.mobile and getattr(settings, 'TWILIO_ACCOUNT_SID', None) and getattr(settings, 'TWILIO_AUTH_TOKEN', None):
+        try:
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"Your Hostel Management verification code is {otp}",
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=owner.mobile,
+            )
+        except Exception as e:
+            print(f"Failed to send SMS to {owner.mobile}: {e}")
         
     return otp
 
@@ -214,3 +227,29 @@ class OwnerResetPasswordSerializer(serializers.Serializer):
         owner.otp_created_at = None
         owner.save(update_fields=["password", "otp", "otp_created_at"])
         return owner
+
+
+class OwnerUpdateSerializer(serializers.ModelSerializer):
+    payuKey = serializers.CharField(source="payu_key", required=False, allow_blank=True)
+    payuSalt = serializers.CharField(source="payu_salt", required=False, allow_blank=True)
+
+    class Meta:
+        model = Owner
+        fields = ("name", "email", "mobile", "payuKey", "payuSalt")
+        extra_kwargs = {
+            "email": {"required": False},
+            "mobile": {"required": False},
+            "name": {"required": False},
+        }
+
+    def validate_email(self, value):
+        owner = self.instance
+        if Owner.objects.exclude(id=owner.id).filter(email=value).exists():
+            raise serializers.ValidationError("Email already in use")
+        return value
+        
+    def validate_mobile(self, value):
+        owner = self.instance
+        if Owner.objects.exclude(id=owner.id).filter(mobile=value).exists():
+            raise serializers.ValidationError("Mobile already in use")
+        return value

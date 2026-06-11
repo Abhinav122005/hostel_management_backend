@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils import timezone as django_timezone
 from django.core.mail import send_mail
+from twilio.rest import Client
 from rest_framework import serializers
 
 from .models import User
@@ -42,6 +43,18 @@ def generate_and_save_user_otp(user):
         )
     except Exception as e:
         print(f"Failed to send email to {user.email}: {e}")
+
+    # Send SMS via Twilio
+    if user.mobile and getattr(settings, 'TWILIO_ACCOUNT_SID', None) and getattr(settings, 'TWILIO_AUTH_TOKEN', None):
+        try:
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"Your Hostel Management verification code is {otp}",
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=user.mobile,
+            )
+        except Exception as e:
+            print(f"Failed to send SMS to {user.mobile}: {e}")
         
     return otp
 
@@ -231,3 +244,26 @@ class UserResetPasswordSerializer(serializers.Serializer):
         user.otp_created_at = None
         user.save(update_fields=["password", "otp", "otp_created_at", "updated_at"])
         return user
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("name", "email", "mobile")
+        extra_kwargs = {
+            "email": {"required": False},
+            "mobile": {"required": False},
+            "name": {"required": False},
+        }
+
+    def validate_email(self, value):
+        user = self.instance
+        if User.objects.exclude(id=user.id).filter(email=value).exists():
+            raise serializers.ValidationError("Email already in use")
+        return value
+
+    def validate_mobile(self, value):
+        user = self.instance
+        if User.objects.exclude(id=user.id).filter(mobile=value).exists():
+            raise serializers.ValidationError("Mobile already in use")
+        return value
