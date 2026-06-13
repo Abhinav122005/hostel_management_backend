@@ -10,8 +10,8 @@ from .serializers import (
     UserResetPasswordSerializer,
     UserSendOTPSerializer,
     UserSerializer,
-    UserUpdateSerializer,
     UserVerifyOTPSerializer,
+    UserUpdateSerializer,
 )
 
 
